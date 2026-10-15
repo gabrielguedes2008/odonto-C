@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
+const html = readFileSync('index.html', 'utf8');
+const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+assert.equal(ids.length, new Set(ids).size, 'IDs duplicados');
+for (const match of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(match[1]), `Âncora inválida: ${match[1]}`);
+for (const match of html.matchAll(/(?:src|href)="((?:public\/|styles\.css|app\.js|site-config\.js)[^"]*)"/g)) assert.ok(existsSync(match[1]), `Arquivo ausente: ${match[1]}`);
+for (const match of html.matchAll(/<img\b[^>]*>/g)) assert.ok(/\balt="/.test(match[0]), 'Imagem sem alt');
+assert.equal((html.match(/<h1\b/g) || []).length, 1, 'A página precisa de um único H1');
+assert.ok(html.includes('lang="pt-BR"'));
+console.log('Verificados: IDs, âncoras, arquivos locais, textos alternativos, H1 e idioma.');
